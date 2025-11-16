@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DISC 互動測驗</title>
+<style>
+    body {font-family: "Noto Sans TC", sans-serif;background: #f5f5f5;padding: 20px;color: #333;max-width: 650px;margin: auto;}
+    h1 { text-align: center; }
+    .question-card {background: #fff;padding: 20px;border-radius: 12px;margin-top: 20px;box-shadow: 0 3px 8px rgba(0,0,0,0.1);}
+    button.option {width: 100%;padding: 12px;margin: 6px 0;background: #4a90e2;color: white;border-radius: 8px;font-size: 15px;border: none;cursor: pointer;}
+    button.option:hover {opacity: 0.9;}
+    #result {display: none;margin-top: 30px;padding: 20px;background: #fffbe6;border-radius: 10px;border-left: 5px solid #f2c200;}
+    img {max-width: 100%;border-radius: 10px;margin: 10px 0;}
+</style>
+</head>
+
+<body>
+
+<h1>DISC 5題快速心理測驗</h1>
+
+<div id="app"></div>
+
+<div id="result"></div>
+
+<script>
+const questions = [
+    {text: "1. 在同學眼中您是一位？",mapping:{A:"D",B:"I",C:"S",D:"C"},options:{A:"A. 積極、熱情、有行動力的人",B:"B. 活潑、開朗、風趣幽默的人",C:"C. 忠誠、隨和、容易相處的人",D:"D. 謹慎、冷靜、注意細節的人"}},
+    {text: "2. 您做決策的方式？",mapping:{A:"D",B:"I",C:"S",D:"C"},options:{A:"A. 希望能立即有效",B:"B. 感覺重於一切",C:"C. 有時間考慮或尋求他人意見",D:"D. 要有詳細的資料評估"}},
+    {text: "3. 哪種類型的工作是我最擅長的？",mapping:{A:"D",B:"I",C:"S",D:"C"},options:{A:"A. 以目標為導向，有不服輸的精神）",B:"B. 良好口才，能主動與人建立友善關係",C:"C. 能配合團隊，扮演忠誠的擁護者",D:"D. 流程的掌握，注意到細節"}},
+    {text: "4. 當面對壓力時，您會？",mapping:{A:"D",B:"I",C:"S",D:"C"},options:{A:"A. 用行動力去面對它，並且克服它",B:"B. 希望找人傾吐，獲得認同",C:"C. 逆來順受，儘量避免衝突",D:"D. 重新思考緣由，必要時做精細的解說"}},
+    {text: "5. 哪些是您自覺的最嚴重缺點？",mapping:{A:"D",B:"I",C:"S",D:"C"},options:{A:"A. 沒有耐心",B:"B. 欠缺細心",C:"C. 沒有主見",D:"D. 欠缺風趣"}}
+];
+
+let current = 0;
+let scores = {D:0, I:0, S:0, C:0};
+
+const detail = {
+    D:{
+        title:"D 支配型（Dominance）— 🦁 獅子 / 老虎",
+        description: `
+            <ul>
+                <li>代表性動物：老虎（外向 / 主動 ＋ 任務導向）</li>
+                <li>特質：：步調明快、果斷、執行力高、企圖心強、有話直說、權威風格、個人主義、績效
+                導向、重視結果與效率、重實質報酬、接受挑戰、掌控性高、決策快速</li>
+                <li>缺點：易固執且沒耐心、不善體貼與讚美、見林不見樹、難以忍受愚昧</li>
+                <li>動機：掌控、權力、挑戰與成果</li>
+            </ul>
+        `,
+        img:"https://animal-friendly.co/wp-content/uploads/2022/01/%E5%AD%9F%E5%8A%A0%E6%8B%89%E8%99%8E%EF%BC%88medium%EF%BC%89.jpeg"
+    },
+    I:{
+        title:"I 影響型（Influence）— 🦜 鸚鵡",
+        description: `
+            <ul>
+                <li>外向、熱情、善於表達、喜歡分享「外向/主動」與「關係型/以人為主」之集合</li>
+                <li>樂觀主義、重視形象/人際關係/表現/浪漫、具想像力/創意、喜歡分享與表達、有
+                趣、健談不怕生、活力充沛、不喜例行公事、熱心、常為團隊活力來源</li>
+                <li>缺點：天馬行空、注意力不持久、易情緒化、不自覺畫餅、愛說大道理、跳躍式思考、
+                缺乏邏輯、遇到困難容易閃躲</li>
+                <li>動機：舞台、受歡迎、肯定、掌聲、認同</li>
+            </ul>
+        `,
+        img:"https://class.vbird.tw/~4070c029/A1/image/2.jpg"
+    },
+
+    S:{
+        title:"S 穩健型（Steadiness）— 🐨 無尾熊 / 熊貓",
+        description: `
+            <ul>
+                <li>溫和、有耐心，重視和諧與穩定「內向/被動」與「關係型/以人為主」之集合</li>
+                <li>按部就班、有耐心與毅力、善傾聽、以和為貴、團隊合作、情緒穩定、在乎別人
+                感受、追求穩定、好溝通、不直接、配合度高、服從指示</li>
+                <li>缺點：害怕重大決定及快速改變、怕衝突、過度小心(保守)、猶豫不決、較無主見</li>
+                <li>動機：安全感、穩定、和諧的人際關係</li>
+            </ul>
+        `,
+        img:"https://animal-friendly.co/wp-content/uploads/2021/06/koala-630117_1920.jpg"
+    },
+
+    C:{
+        title:"C 分析型（Conscientiousness）— 🦉 貓頭鷹 / 🦊 狐狸",
+        description: `
+            <ul>
+                <li>邏輯強、細心、重視品質與精準「內向/被動」與「任務型/以事為主」之集合</li>
+                <li>邏輯清晰有條理、善思考及分析、完美主義、深思熟慮、謹慎務實、重視細節與
+數字、不         喜無法預測、不喜出頭</li>
+                <li>缺點：吹毛求疵、見樹不見林、不自覺複雜化問題、過度理性</li>
+                <li>動機：正確性、秩序、標準與專業、回歸目的、高品質、精確性</li>
+            </ul>
+        `,
+        img:"https://media.nownews.com/nn_media/thumbnail/2021/12/1639299355793-86891e762eb3457d8e42a9b643faa814-1200x800.jpg?unShow=false"
+    }
+};
+
+function renderQuestion() {
+    const app = document.getElementById("app");
+    app.innerHTML = "";
+
+    if (current >= questions.length) {
+        return showResult();
+    }
+
+    let q = questions[current];
+    let card = document.createElement("div");
+    card.className = "question-card";
+
+    let h = document.createElement("h3");
+    h.textContent = q.text;
+    card.appendChild(h);
+
+    Object.keys(q.options).forEach(key => {
+        let btn = document.createElement("button");
+        btn.className = "option";
+        btn.textContent = q.options[key];
+        btn.addEventListener("click", () => {
+            scores[q.mapping[key]]++;
+            current++;
+            renderQuestion();
+        });
+        card.appendChild(btn);
+    });
+
+    app.appendChild(card);
+}
+
+function showResult() {
+    const app = document.getElementById("app");
+    app.innerHTML = "";
+    const result = document.getElementById("result");
+
+    let maxType = Object.keys(scores).reduce((a,b)=> scores[a] > scores[b] ? a : b );
+
+    result.style.display = "block";
+    result.innerHTML = `
+        <h2>你的 DISC 類型是：${maxType}</h2>
+        <h3>${detail[maxType].title}</h3>
+        <img src="${detail[maxType].img}">
+        <p>${detail[maxType].description}</p>
+    `;
+}
+
+renderQuestion();
+</script>
+
+</body>
+</html>
